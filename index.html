@@ -622,8 +622,8 @@
     setSubmitStatus("info", "Sending inspection data…");
 
     try {
-      await fetch("[https://script.google.com/a/macros/deligovision.com/s/AKfycbwKwwqKaetORQ1AZQLvKOOTPj9qK8GK_rIfGVrCntSoEwZICfMpTmmzoFNf80X539JyPQ/exec](https://script.google.com/a/macros/deligovision.com/s/AKfycbwKwwqKaetORQ1AZQLvKOOTPj9qK8GK_rIfGVrCntSoEwZICfMpTmmzoFNf80X539JyPQ/exec)", {
-        method: "POST",
+      await fetch("https://script.google.com/macros/s/AKfycbwKwwqKaetORQ1AZQLvKO0TPj9qK8GK_rIfGVrCntSoEwZICfMpTmmzoFNf80X539JyPQ/exec", {
+      method: "POST",
         mode: "no-cors", // Apps Script web apps typically require no-cors from the browser
         headers: { "Content-Type": "text/plain;charset=utf-8" },
         body: JSON.stringify(payload),
