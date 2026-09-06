@@ -90,8 +90,20 @@
   input[type="date"]::-webkit-datetime-edit-fields-wrapper {
     padding: 0;
   }
+  /* iOS Safari renders the value through this pseudo-element and centers it by default */
+  input[type="date"]::-webkit-date-and-time-value {
+    text-align: left;
+    margin: 0;
+  }
   input[type="date"]::-webkit-calendar-picker-indicator {
-    margin-left: 0.5rem;
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    margin: 0;
+    padding: 0;
+    opacity: 0;
+    cursor: pointer;
   }
 
   /* Keyboard-navigable checklist rows */
@@ -193,11 +205,22 @@
             <label for="inspection-date" class="mb-1 flex items-center gap-1.5 text-sm font-medium text-graphite-200">
               Inspection date <span class="text-leaf-500">*</span>
             </label>
-            <input
-              id="inspection-date"
-              type="date"
-              class="w-full max-w-full box-border rounded-md border border-graphite-600 bg-graphite-800 px-3 py-2.5 font-mono text-base text-graphite-100 transition focus:border-leaf-500"
-            />
+            <div class="relative">
+              <input
+                id="inspection-date"
+                type="date"
+                class="w-full max-w-full box-border appearance-none rounded-md border border-graphite-600 bg-graphite-800 px-3 py-2.5 font-mono text-base text-transparent caret-transparent transition focus:border-leaf-500"
+              />
+              <div
+                id="inspection-date-display"
+                class="pointer-events-none absolute inset-0 flex items-center justify-between gap-2 px-3 font-mono text-base text-graphite-100"
+              >
+                <span id="inspection-date-text">Select date</span>
+                <svg class="h-4 w-4 flex-shrink-0 text-graphite-400" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+                  <path fill-rule="evenodd" d="M6 2a1 1 0 011 1v1h6V3a1 1 0 112 0v1h1a2 2 0 012 2v10a2 2 0 01-2 2H4a2 2 0 01-2-2V6a2 2 0 012-2h1V3a1 1 0 011-1zm10 6H4v8h12V8z" clip-rule="evenodd" />
+                </svg>
+              </div>
+            </div>
           </div>
 
           <div class="mt-5 space-y-4" id="serial-inputs">
@@ -417,7 +440,6 @@
         "Connector cover fit / damage",
         "Computer box screws (5x) + washers (2x)",
         "Connector cover screws (3x)",
-        "Comment"
       ],
     },
   };
@@ -443,15 +465,37 @@
   let serialValues = new Array(SERIAL_COUNT).fill("");
 
   const dateInput = document.getElementById("inspection-date");
+  const dateText = document.getElementById("inspection-date-text");
+
   function todayISO() {
     const d = new Date();
     const tz = d.getTimezoneOffset();
     return new Date(d.getTime() - tz * 60000).toISOString().slice(0, 10);
   }
+
+  function updateDateDisplay() {
+    if (!dateInput.value) {
+      dateText.textContent = "Select date";
+      dateText.classList.add("text-graphite-500");
+      return;
+    }
+    dateText.classList.remove("text-graphite-500");
+    // Parse as local date (avoid UTC shifting the day) and format e.g. "Sep 6, 2026"
+    const [y, m, d] = dateInput.value.split("-").map(Number);
+    const localDate = new Date(y, m - 1, d);
+    dateText.textContent = localDate.toLocaleDateString(undefined, {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+    });
+  }
+
   dateInput.value = todayISO();
+  updateDateDisplay();
   dateInput.addEventListener("input", () => {
     dateInput.classList.remove("invalid-ring");
     document.getElementById("serial-error").classList.add("hidden");
+    updateDateDisplay();
   });
 
   function buildSerialInputs() {
@@ -808,6 +852,7 @@
 
     dateInput.value = todayISO();
     dateInput.classList.remove("invalid-ring");
+    updateDateDisplay();
     document.getElementById("serial-error").classList.add("hidden");
 
     document.getElementById("comments").value = "";
